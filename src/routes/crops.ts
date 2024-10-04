@@ -25,15 +25,15 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/:id', (req: Request, res: Response, next: NextFunction) => {
   Crop.findById(req.params.id)
-    .then((crop) => {
+    .then(crop => {
       if (!crop) {
         return res.status(404).json({ message: 'Crop not found' });
       }
-      res.json(crop);
+      const cropObject = crop.toObject();
+      console.log('Crop data:', cropObject); // Add this line for debugging
+      res.json(cropObject);
     })
-    .catch((error) => {
-      next(error);
-    });
+    .catch(error => next(error));
 });
 
 export default router;

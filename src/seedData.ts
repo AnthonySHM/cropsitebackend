@@ -1,160 +1,161 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import axios from 'axios';
 import Crop from './models/Crop';
 import { connectDB } from './db';
 
 dotenv.config();
 
+const PIXABAY_API_KEY = "46339207-8e3b19c7aa4a736e6c29abdcc";
+const PIXABAY_API_URL = 'https://pixabay.com/api/';
+const YOUTUBE_API_KEY = 'AIzaSyCFX39qQAJextYqrNT8zR37gfOttj4ht8Q';
+const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/search';
+
+const crops = [
+  "Tomato", "Potato", "Carrot", "Lettuce", "Cucumber"
+];
+
 interface CropData {
   name: string;
   image: string;
   overview: string;
-  overviewImages: Array<{ url: string; caption: string }>;
-  overviewVideos: Array<{ url: string; title: string; description?: string }>;
+  overviewImages: { url: string; caption: string }[];
+  overviewVideos: { url: string; title: string; description: string }[];
   planting: string;
-  plantingImages: Array<{ url: string; caption: string }>;
-  plantingVideos: Array<{ url: string; title: string; description?: string }>;
+  plantingImages: { url: string; caption: string }[];
+  plantingVideos: { url: string; title: string; description: string }[];
   care: string;
-  careImages: Array<{ url: string; caption: string }>;
-  careVideos: Array<{ url: string; title: string; description?: string }>;
+  careImages: { url: string; caption: string }[];
+  careVideos: { url: string; title: string; description: string }[];
   harvest: string;
-  harvestImages: Array<{ url: string; caption: string }>;
-  harvestVideos: Array<{ url: string; title: string; description?: string }>;
+  harvestImages: { url: string; caption: string }[];
+  harvestVideos: { url: string; title: string; description: string }[];
   economics: string;
-  economicsImages: Array<{ url: string; caption: string }>;
-  economicsVideos: Array<{ url: string; title: string; description?: string }>;
+  economicsImages: { url: string; caption: string }[];
+  economicsVideos: { url: string; title: string; description: string }[];
   rating: number;
 }
 
-const seedData: CropData[] = [
-  {
-    name: 'Wheat',
-    image: 'https://images.pexels.com/photos/326082/pexels-photo-326082.jpeg',
-    overview: 'Wheat is a staple grain crop grown worldwide for its versatile uses in food production.',
-    overviewImages: [
-      { url: 'https://images.pexels.com/photos/326082/pexels-photo-326082.jpeg', caption: 'Wheat field at sunset' },
-      { url: 'https://images.pexels.com/photos/533982/pexels-photo-533982.jpeg', caption: 'Close-up of wheat grains' },
-    ],
-    overviewVideos: [
-      { url: 'https://www.youtube.com/watch?v=9qXLLNEUejs', title: 'How It\'s Made: Wheat', description: 'Discovery of how wheat is produced and processed' },
-    ],
-    planting: 'Plant wheat seeds 1-2 inches deep in rows, with 4-6 inches between each seed.',
-    plantingImages: [
-      { url: 'https://images.pexels.com/photos/2255459/pexels-photo-2255459.jpeg', caption: 'Planting wheat seeds' },
-    ],
-    plantingVideos: [
-      { url: 'https://www.youtube.com/watch?v=y8kKc-MdDM8', title: 'How to Plant Wheat', description: 'Step-by-step guide on planting wheat' },
-    ],
-    care: 'Water regularly and apply fertilizer as needed. Monitor for pests and diseases.',
-    careImages: [
-      { url: 'https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg', caption: 'Irrigating wheat fields' },
-    ],
-    careVideos: [
-      { url: 'https://www.youtube.com/watch?v=KM6tUzmBxoQ', title: 'Wheat Crop Management', description: 'Best practices for caring for wheat crops' },
-    ],
-    harvest: 'Harvest wheat when the stalks turn golden and the grains are hard.',
-    harvestImages: [
-      { url: 'https://images.pexels.com/photos/1595108/pexels-photo-1595108.jpeg', caption: 'Combine harvester in action' },
-    ],
-    harvestVideos: [
-      { url: 'https://www.youtube.com/watch?v=335c-tZ3N5E', title: 'Wheat Harvesting', description: 'Modern techniques for harvesting wheat' },
-    ],
-    economics: 'Wheat is a major global commodity with applications in various food industries.',
-    economicsImages: [
-      { url: 'https://images.pexels.com/photos/1797505/pexels-photo-1797505.jpeg', caption: 'Global wheat trade' },
-    ],
-    economicsVideos: [
-      { url: 'https://www.youtube.com/watch?v=PJfiN1ULrVo', title: 'The Economics of Wheat', description: 'Understanding the global wheat market' },
-    ],
-    rating: 4.5
-  },
-  {
-    name: 'Corn',
-    image: 'https://images.pexels.com/photos/547263/pexels-photo-547263.jpeg',
-    overview: 'Corn, also known as maize, is a versatile crop used for food, feed, and fuel production.',
-    overviewImages: [
-      { url: 'https://images.pexels.com/photos/547263/pexels-photo-547263.jpeg', caption: 'Corn field at sunset' },
-      { url: 'https://images.pexels.com/photos/1459331/pexels-photo-1459331.jpeg', caption: 'Close-up of corn ears' },
-    ],
-    overviewVideos: [
-      { url: 'https://www.youtube.com/watch?v=xWOxWzT6Zqw', title: 'The Life Cycle of Corn', description: 'From seed to harvest: the corn growth process' },
-    ],
-    planting: 'Plant corn seeds 1-2 inches deep in rows, with 4-6 inches between each seed.',
-    plantingImages: [
-      { url: 'https://images.pexels.com/photos/2255459/pexels-photo-2255459.jpeg', caption: 'Planting corn seeds' },
-    ],
-    plantingVideos: [
-      { url: 'https://www.youtube.com/watch?v=oGn-ARGRTgc', title: 'How to Plant Corn', description: 'Step-by-step guide to planting corn' },
-    ],
-    care: 'Water regularly, especially during tasseling. Apply fertilizer and control weeds.',
-    careImages: [
-      { url: 'https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg', caption: 'Irrigating corn fields' },
-    ],
-    careVideos: [
-      { url: 'https://www.youtube.com/watch?v=ckYrG6bUbJ8', title: 'Corn Crop Management', description: 'Essential tips for caring for your corn crop' },
-    ],
-    harvest: 'Harvest corn when the kernels are fully developed and the silks have turned brown.',
-    harvestImages: [
-      { url: 'https://images.pexels.com/photos/1595108/pexels-photo-1595108.jpeg', caption: 'Combine harvester in corn field' },
-    ],
-    harvestVideos: [
-      { url: 'https://www.youtube.com/watch?v=bt1XEz0p8TI', title: 'Corn Harvesting Process', description: 'Modern techniques for harvesting corn' },
-    ],
-    economics: 'Corn is a major crop with diverse applications in food, feed, and biofuel industries.',
-    economicsImages: [
-      { url: 'https://images.pexels.com/photos/1797505/pexels-photo-1797505.jpeg', caption: 'Global corn trade' },
-    ],
-    economicsVideos: [
-      { url: 'https://www.youtube.com/watch?v=xebZWeOEpY0', title: 'The Economics of Corn', description: 'Understanding the corn market and its impact' },
-    ],
-    rating: 4.5
-  },
-  {
-    name: 'Rice',
-    image: 'https://images.pexels.com/photos/1241532/pexels-photo-1241532.jpeg',
-    overview: 'Rice is a staple food for more than half of the world\'s population, particularly in Asia.',
-    overviewImages: [
-      { url: 'https://images.pexels.com/photos/1241532/pexels-photo-1241532.jpeg', caption: 'Terraced rice fields' },
-      { url: 'https://images.pexels.com/photos/4110256/pexels-photo-4110256.jpeg', caption: 'Close-up of rice grains' }
-    ],
-    overviewVideos: [
-      { url: 'https://www.youtube.com/watch?v=kxAEiHCErSA', title: 'Rice Farming', description: 'Overview of rice cultivation techniques' },
-    ],
-    planting: 'Sow rice seeds in flooded paddies or transplant seedlings into flooded fields.',
-    plantingImages: [
-      { url: 'https://images.pexels.com/photos/2255459/pexels-photo-2255459.jpeg', caption: 'Planting rice seedlings' },
-    ],
-    plantingVideos: [
-      { url: 'https://www.youtube.com/watch?v=kRnK8xI3PY4', title: 'How to Plant Rice', description: 'Traditional and modern methods of planting rice' },
-    ],
-    care: 'Maintain water levels, control weeds, and apply fertilizer as needed.',
-    careImages: [
-      { url: 'https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg', caption: 'Managing water levels in rice paddy' },
-    ],
-    careVideos: [
-      { url: 'https://www.youtube.com/watch?v=H7g-n-3xshc', title: 'Rice Crop Management', description: 'Essential tips for caring for your rice crop' },
-    ],
-    harvest: 'Harvest rice when the grains are mature and the plants have turned golden-brown.',
-    harvestImages: [
-      { url: 'https://images.pexels.com/photos/1595108/pexels-photo-1595108.jpeg', caption: 'Harvesting rice with combine' },
-    ],
-    harvestVideos: [
-      { url: 'https://www.youtube.com/watch?v=_TgqZaZmqM4', title: 'Rice Harvesting Process', description: 'Various methods of harvesting rice' },
-    ],
-    economics: 'Rice is a crucial food crop and an important part of the economy in many countries.',
-    economicsImages: [
-      { url: 'https://images.pexels.com/photos/1797505/pexels-photo-1797505.jpeg', caption: 'Global rice trade' },
-    ],
-    economicsVideos: [
-      { url: 'https://www.youtube.com/watch?v=efNF1eODN4g', title: 'The Economics of Rice', description: 'Understanding the global rice market' },
-    ],
-    rating: 4.7
+async function fetchImages(query: string, count: number = 5): Promise<any[]> {
+  try {
+    const response = await axios.get(PIXABAY_API_URL, {
+      params: {
+        key: PIXABAY_API_KEY,
+        q: query,
+        per_page: count,
+        image_type: 'photo',
+      },
+    });
+    return response.data.hits;
+  } catch (error) {
+    console.error(`Error fetching images for ${query}:`, error);
+    return [];
   }
-];
+}
+
+async function fetchYouTubeVideos(query: string, count: number = 10): Promise<any[]> {
+  try {
+    const response = await axios.get(YOUTUBE_API_URL, {
+      params: {
+        part: 'snippet',
+        q: query,
+        type: 'video',
+        maxResults: count,
+        key: YOUTUBE_API_KEY,
+      },
+    });
+    return response.data.items;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(`Error fetching YouTube videos for ${query}:`, error.response?.data);
+    } else {
+      console.error(`Error fetching YouTube videos for ${query}:`, error);
+    }
+    return [];
+  }
+}
+
+function generateExtensiveOverview(cropName: string): string {
+  return `
+${cropName} is a versatile and widely cultivated crop that plays a significant role in global agriculture and cuisine. 
+
+Origin and History:
+${cropName} has a rich history dating back thousands of years. It is believed to have originated in [region], where it was first domesticated around [time period]. Since then, it has spread across the globe and has been adapted to various climates and growing conditions.
+
+Botanical Characteristics:
+${cropName} belongs to the [family name] family. It is typically an annual plant, growing to a height of [height range]. The plant produces [description of leaves, flowers, and fruits/vegetables].
+
+Nutritional Value:
+${cropName} is known for its nutritional benefits. It is rich in [list of vitamins and minerals]. It also contains [other beneficial compounds] which have been associated with various health benefits, including [list of potential health benefits].
+
+Culinary Uses:
+${cropName} is a versatile ingredient in many cuisines around the world. It can be eaten raw, cooked, or processed into various products. Common culinary uses include [list of common uses].
+
+Agricultural Importance:
+As a major crop, ${cropName} contributes significantly to global food security and agricultural economies. It is grown in [list of major producing countries/regions] and plays a crucial role in both subsistence farming and large-scale commercial agriculture.
+
+Varieties:
+There are numerous varieties of ${cropName}, each bred for specific characteristics such as flavor, size, disease resistance, or adaptability to different climates. Some popular varieties include [list of popular varieties].
+
+This overview provides a foundation for understanding the importance and versatility of ${cropName} in agriculture and human consumption.
+  `;
+}
+
+async function generateSeedData(): Promise<CropData[]> {
+  const seedData: CropData[] = [];
+
+  for (const crop of crops) {
+    const images = await fetchImages(crop, 10);
+    if (images.length === 0) continue;
+
+    const videoCategories = ['overview', 'planting', 'care', 'harvest', 'economics'];
+    const videos: { [key: string]: any } = {};
+
+    for (const category of videoCategories) {
+      try {
+        const fetchedVideos = await fetchYouTubeVideos(`${crop} farming ${category}`, 1);
+        videos[category] = fetchedVideos.length > 0 ? fetchedVideos[0] : null;
+      } catch (error) {
+        console.error(`Error fetching ${category} video for ${crop}:`, error);
+        videos[category] = null;
+      }
+    }
+
+    const mapVideo = (video: any): { url: string; title: string; description: string } | null => video ? {
+      url: `https://www.youtube.com/watch?v=${video.id.videoId}`,
+      title: video.snippet.title,
+      description: video.snippet.description
+    } : null;
+
+    seedData.push({
+      name: crop,
+      image: images[0].webformatURL,
+      overview: generateExtensiveOverview(crop),
+      overviewImages: images.slice(0, 3).map(img => ({ url: img.webformatURL, caption: img.tags })),
+      overviewVideos: [mapVideo(videos.overview)].filter((v): v is { url: string; title: string; description: string } => v !== null),
+      planting: `Planting ${crop} involves careful preparation of soil, consideration of climate conditions, and proper timing. [Add more detailed planting information here]`,
+      plantingImages: images.slice(3, 5).map(img => ({ url: img.webformatURL, caption: `${crop} planting process` })),
+      plantingVideos: [mapVideo(videos.planting)].filter((v): v is { url: string; title: string; description: string } => v !== null),
+      care: `${crop} requires regular care, including watering, fertilization, and protection from pests and diseases. [Add more detailed care information here]`,
+      careImages: images.slice(5, 7).map(img => ({ url: img.webformatURL, caption: `${crop} plant care` })),
+      careVideos: [mapVideo(videos.care)].filter((v): v is { url: string; title: string; description: string } => v !== null),
+      harvest: `Harvesting ${crop} at the right time ensures optimal quality and yield. [Add more detailed harvesting information here]`,
+      harvestImages: images.slice(7, 9).map(img => ({ url: img.webformatURL, caption: `${crop} harvest` })),
+      harvestVideos: [mapVideo(videos.harvest)].filter((v): v is { url: string; title: string; description: string } => v !== null),
+      economics: `${crop} is an economically important crop with significant market demand and value. [Add more detailed economic information here]`,
+      economicsImages: [{ url: images[9].webformatURL, caption: `${crop} in agriculture` }],
+      economicsVideos: [mapVideo(videos.economics)].filter((v): v is { url: string; title: string; description: string } => v !== null),
+      rating: Number((Math.random() * (5 - 3) + 3).toFixed(1)),
+    });
+  }
+
+  return seedData;
+}
 
 const seedDatabase = async () => {
   try {
     await connectDB();
+    const seedData = await generateSeedData();
     await Crop.deleteMany({});
     await Crop.insertMany(seedData);
     console.log('Database seeded successfully');
