@@ -5,6 +5,7 @@ import connectDB from './db';
 import cropRoutes from './routes/crops';
 import authRoutes from './routes/auth';
 import { authMiddleware } from './middleware/auth';
+import commentRoutes from './routes/comments';
 
 dotenv.config();
 
@@ -19,7 +20,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/crops', authMiddleware as express.RequestHandler, cropRoutes);
+app.use('/api/crops', authMiddleware, cropRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Test route
 app.get('/', (req, res) => {

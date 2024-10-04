@@ -4,7 +4,7 @@ import { verifyToken } from '../utils/jwt';
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ message: 'No token provided' });
+    return next(new Error('No token provided'));
   }
 
   const token = authHeader.split(' ')[1];
@@ -14,6 +14,6 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     next();
   } catch (error) {
     console.error('Token verification failed:', error);
-    res.status(401).json({ message: 'Invalid token' });
+    next(new Error('Invalid token'));
   }
 }
