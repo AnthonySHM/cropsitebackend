@@ -19,6 +19,7 @@ export interface ICrop extends Document {
   care: string;
   harvest: string;
   economics: string;
+  rating: number; // Add this line
   videos: {
     [key: string]: IVideo[];
   };
@@ -46,6 +47,7 @@ const CropSchema: Schema = new Schema({
   care: { type: String, required: true },
   harvest: { type: String, required: true },
   economics: { type: String, required: true },
+  rating: { type: Number, default: 0 }, // Add this line
   videos: {
     overview: [VideoSchema],
     planting: [VideoSchema],
