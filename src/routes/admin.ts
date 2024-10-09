@@ -1,11 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import Crop from '../models/Crop';
 import Comment from '../models/Comment';
-import { authMiddleware } from '../middleware/auth';
+import User from '../models/User';
+import { authMiddleware, adminMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 
 router.use(authMiddleware);
+
 
 // Get all crops
 router.get('/crops', (req: Request, res: Response, next: NextFunction) => {
@@ -113,6 +115,28 @@ router.delete('/comments/:id', (req: Request, res: Response, next: NextFunction)
         return res.status(404).json({ message: 'Comment not found' });
       }
       res.json({ message: 'Comment deleted successfully' });
+    })
+    .catch(next);
+});
+
+// GET /admin/users
+router.get('/users', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = await User.find({}, 'username email');
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /admin/users/:id
+router.delete('/users/:id', (req: Request, res: Response, next: NextFunction) => {
+  User.findByIdAndDelete(req.params.id)
+    .then(deletedUser => {
+      if (!deletedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.json({ message: 'User deleted successfully' });
     })
     .catch(next);
 });

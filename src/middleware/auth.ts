@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return next(new Error('No token provided'));
+    res.status(401).json({ message: 'No token provided' });
+    return;
   }
 
   const token = authHeader.split(' ')[1];
@@ -14,13 +15,13 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     next();
   } catch (error) {
     console.error('Token verification failed:', error);
-    next(new Error('Invalid token'));
+    res.status(401).json({ message: 'Invalid token' });
   }
 }
 
 export function adminMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.user || !(req.user as any).isAdmin) {
-    return next(new Error('Admin access required'));
+    return res.status(403).json({ message: 'Admin access required' });
   }
   next();
 }
