@@ -17,3 +17,10 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     next(new Error('Invalid token'));
   }
 }
+
+export function adminMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.user || !(req.user as any).isAdmin) {
+    return next(new Error('Admin access required'));
+  }
+  next();
+}

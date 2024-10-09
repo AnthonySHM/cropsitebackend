@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 
-// Get comments for a specific crop and tab
+// Get comments for a specific crop and tab (no authentication required)
 router.get('/:cropId/:tab', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { cropId, tab } = req.params;
@@ -15,7 +15,7 @@ router.get('/:cropId/:tab', async (req: Request, res: Response, next: NextFuncti
   }
 });
 
-// Add a new comment
+// Add a new comment (authentication required)
 router.post('/', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { cropId, tab, content } = req.body;

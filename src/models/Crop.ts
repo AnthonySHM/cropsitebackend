@@ -1,35 +1,65 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const ImageSchema = new mongoose.Schema({
-  url: { type: String, required: true },
-  caption: { type: String }
+interface IVideo {
+  title: string;
+  description: string;
+  url: string;
+}
+
+interface IImage {
+  url: string;
+  caption: string;
+}
+
+export interface ICrop extends Document {
+  name: string;
+  image: string;
+  overview: string;
+  planting: string;
+  care: string;
+  harvest: string;
+  economics: string;
+  videos: {
+    [key: string]: IVideo[];
+  };
+  images: {
+    [key: string]: IImage[];
+  };
+}
+
+const VideoSchema = new Schema({
+  title: String,
+  description: String,
+  url: String,
 });
 
-const VideoSchema = new mongoose.Schema({
-  url: { type: String, default: '' },
-  title: { type: String, required: true },
-  description: { type: String }
+const ImageSchema = new Schema({
+  url: String,
+  caption: String,
 });
 
-const CropSchema = new mongoose.Schema({
+const CropSchema: Schema = new Schema({
   name: { type: String, required: true },
   image: { type: String, required: true },
   overview: { type: String, required: true },
-  overviewImages: [ImageSchema],
-  overviewVideos: [VideoSchema],
   planting: { type: String, required: true },
-  plantingImages: [ImageSchema],
-  plantingVideos: [VideoSchema],
   care: { type: String, required: true },
-  careImages: [ImageSchema],
-  careVideos: [VideoSchema],
   harvest: { type: String, required: true },
-  harvestImages: [ImageSchema],
-  harvestVideos: [VideoSchema],
   economics: { type: String, required: true },
-  economicsImages: [ImageSchema],
-  economicsVideos: [VideoSchema],
-  rating: { type: Number, default: 0, min: 0, max: 5 },
+  videos: {
+    overview: [VideoSchema],
+    planting: [VideoSchema],
+    care: [VideoSchema],
+    harvest: [VideoSchema],
+    economics: [VideoSchema],
+  },
+  images: {
+    overview: [ImageSchema],
+    planting: [ImageSchema],
+    care: [ImageSchema],
+    harvest: [ImageSchema],
+    economics: [ImageSchema],
+  },
 });
 
-export default mongoose.model('Crop', CropSchema);
+export default mongoose.model<ICrop>('Crop', CropSchema);

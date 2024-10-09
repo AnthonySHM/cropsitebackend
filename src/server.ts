@@ -6,6 +6,7 @@ import cropRoutes from './routes/crops';
 import authRoutes from './routes/auth';
 import { authMiddleware } from './middleware/auth';
 import commentRoutes from './routes/comments';
+import adminRoutes from './routes/admin';
 
 dotenv.config();
 
@@ -20,8 +21,9 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/crops', authMiddleware, cropRoutes);
+app.use('/api/crops', cropRoutes); // Remove authMiddleware from here
 app.use('/api/comments', commentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Test route
 app.get('/', (req, res) => {
