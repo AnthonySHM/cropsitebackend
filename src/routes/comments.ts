@@ -8,7 +8,9 @@ const router = express.Router();
 router.get('/:cropId/:tab', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { cropId, tab } = req.params;
-    const comments = await Comment.find({ crop: cropId, tab }).populate('user', 'username');
+    const comments = await Comment.find({ crop: cropId, tab })
+      .populate('user', 'username')
+      .sort({ createdAt: -1 });
     res.json(comments);
   } catch (error) {
     next(error);

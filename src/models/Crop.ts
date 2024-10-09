@@ -47,7 +47,7 @@ const CropSchema: Schema = new Schema({
   care: { type: String, required: true },
   harvest: { type: String, required: true },
   economics: { type: String, required: true },
-  rating: { type: Number, default: 0 }, // Add this line
+  rating: { type: Number, min: 0, max: 5, default: 0 }, // Add this line
   videos: {
     overview: [VideoSchema],
     planting: [VideoSchema],
