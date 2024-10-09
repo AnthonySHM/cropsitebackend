@@ -5,7 +5,18 @@ const router = express.Router();
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const crops = await Crop.find().select('name image rating');
+    const { search, minRating } = req.query;
+    let query: any = {};
+
+    if (search) {
+      query.name = { $regex: search as string, $options: 'i' };
+    }
+
+    if (minRating) {
+      query.rating = { $gte: parseFloat(minRating as string) };
+    }
+
+    const crops = await Crop.find(query).select('name image rating');
     const cropsWithDefaultRating = crops.map(crop => ({
       ...crop.toObject(),
       rating: crop.rating || 0 // Set default rating to 0 if it's undefined
