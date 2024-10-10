@@ -19,9 +19,10 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   }
 }
 
-export function adminMiddleware(req: Request, res: Response, next: NextFunction) {
+export function adminMiddleware(req: Request, res: Response, next: NextFunction): void {
   if (!req.user || !(req.user as any).isAdmin) {
-    return res.status(403).json({ message: 'Admin access required' });
+    res.status(403).json({ message: 'Admin access required' });
+    return;
   }
   next();
 }

@@ -29,11 +29,33 @@ router.get('/crops/:id', (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Create a new crop
-router.post('/crops', (req: Request, res: Response, next: NextFunction) => {
-  const newCrop = new Crop(req.body);
+router.post('/crops', adminMiddleware, (req: Request, res: Response, next: NextFunction) => {
+  const cropData = req.body;
+  const requiredFields = ['name', 'overview', 'planting', 'care', 'harvest', 'economics'];
+  const missingFields = requiredFields.filter(field => !cropData[field]);
+
+  if (missingFields.length > 0) {
+    res.status(400).json({ error: `Missing required fields: ${missingFields.join(', ')}` });
+    return;
+  }
+
+  const newCrop = new Crop(cropData);
   newCrop.save()
-    .then(crop => res.status(201).json(crop))
-    .catch(next);
+    .then(savedCrop => {
+      res.status(201).json(savedCrop);
+    })
+    .catch(err => {
+      console.error('Error saving crop:', err);
+      if (err instanceof Error) {
+        if (err.name === 'ValidationError') {
+          res.status(400).json({ error: 'Validation Error', details: err.message });
+        } else {
+          res.status(500).json({ error: 'Failed to save crop', details: err.message });
+        }
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    });
 });
 
 // Update a crop
